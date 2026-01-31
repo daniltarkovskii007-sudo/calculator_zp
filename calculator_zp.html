@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<title>Salary Calculator | Saint-Gobain</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --sg-blue: #003a8f;
+    --sg-light-blue: #e6eef9;
+    --sg-gray: #f5f6f8;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--sg-blue), #005bbb);
+    padding: 10px;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+.box {
+    max-width: 440px;
+    width: 100%;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    box-sizing: border-box;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.header h2 {
+    margin: 0;
+    color: var(--sg-blue);
+}
+
+.header .subtitle {
+    font-size: 14px;
+    color: #666;
+}
+
+.language-flags {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.language-flags img {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    transition: border 0.2s;
+}
+
+.language-flags img.active {
+    border-color: var(--sg-blue);
+}
+
+label {
+    display: block;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--sg-blue);
+    box-shadow: 0 0 0 2px var(--sg-light-blue);
+}
+
+.small {
+    font-size: 13px;
+    color: #666;
+    margin-top: 2px;
+}
+
+button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: var(--sg-blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #002f73;
+}
+
+.result {
+    margin-top: 20px;
+    background: var(--sg-light-blue);
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 15px;
+    word-wrap: break-word;
+}
+
+.result strong {
+    color: var(--sg-blue);
+}
+
+.author {
+    text-align: center;
+    font-size: 12px;
+    color: #444;
+    margin-top: 10px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #888;
+}
+
+@media (max-width: 480px) {
+    body { padding: 5px; }
+    .box { padding: 15px; }
+    input, select { font-size: 14px; padding: 8px; }
+    button { font-size: 15px; padding: 10px; }
+    .header .subtitle { font-size: 12px; }
+    .language-flags img { width: 28px; height: 28px; }
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+    <div class="header">
+        <h2 id="title">Palga kalkulaator</h2>
+        <div class="subtitle" id="subtitle">Saint-Gobain • Eesti 🇪🇪</div>
+    </div>
+
+    <div class="language-flags">
+        <img src="https://flagcdn.com/w20/ee.png" alt="Eesti" onclick="setLanguage('et')" id="flag-et" class="active">
+        <img src="https://flagcdn.com/w20/ua.png" alt="Українська" onclick="setLanguage('ua')" id="flag-ua">
+    </div>
+
+    <label for="rate" id="labelRate">Tunnitasu (€)</label>
+    <input type="number" id="rate" step="0.01">
+
+    <label for="dayHours" id="labelDay">Päevatunnid</label>
+    <input type="number" id="dayHours">
+
+    <label for="nightHours" id="labelNight">Öötunnid</label>
+    <input type="number" id="nightHours">
+    <div class="small" id="smallNight">+35% tasust</div>
+
+    <label for="doubleHours" id="labelDouble">Kahekordsete vahetuste tunnid</label>
+    <input type="number" id="doubleHours">
+    <div class="small" id="smallDouble">Makstakse ×2</div>
+
+    <label for="pensionRate" id="labelPension">Pension — 2. aste</label>
+    <select id="pensionRate">
+        <option value="0">0%</option>
+        <option value="0.02">2%</option>
+        <option value="0.04">4%</option>
+        <option value="0.06">6%</option>
+    </select>
+
+    <button onclick="calculate()" id="calculateBtn">Arvuta</button>
+
+    <div class="result" id="output"></div>
+
+    <div class="author">by Tarkovskyi</div>
+
+    <div class="footer" id="footer">Internal calculator • Mitte ametlik palk</div>
+</div>
+
+<script>
+const texts = {
+    et: { 
+        title: "Palga kalkulaator", subtitle: "Saint-Gobain • Eesti 🇪🇪",
+        labelRate: "Tunnitasu (€)", labelDay: "Päevatunnid", labelNight: "Öötunnid",
+        smallNight: "+35% tasust", labelDouble: "Kahekordsete vahetuste tunnid", smallDouble: "Makstakse ×2",
+        labelPension: "Pension — 2. aste", calculateBtn: "Arvuta",
+        footer: "Internal calculator • Mitte ametlik palk",
+        result: { bruto: "Bruto", pension1: "Pension 1 aste", pension2: "Pension 2 aste",
+            unemployment: "Töötuskindlustus", incomeTax: "Tulumaks", netto: "Netto" } 
+    },
+    ua: { 
+        title: "Калькулятор зарплати", subtitle: "Saint-Gobain • Estonia 🇪🇪",
+        labelRate: "Погодинна ставка (€)", labelDay: "Денні години", labelNight: "Нічні години",
+        smallNight: "+35% до ставки", labelDouble: "Години подвійної зміни", smallDouble: "Оплата ×2",
+        labelPension: "Пенсія — 2 ступінь", calculateBtn: "Розрахувати",
+        footer: "Internal calculator • Неофіційний розрахунок",
+        result: { bruto: "Брутто", pension1: "Пенсія 1 ст.", pension2: "Пенсія 2 ст.",
+            unemployment: "Безробіття", incomeTax: "Податок", netto: "Нетто" } 
+    }
+};
+
+let currentLang = 'et';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    const t = texts[lang];
+
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("subtitle").textContent = t.subtitle;
+    document.getElementById("labelRate").textContent = t.labelRate;
+    document.getElementById("labelDay").textContent = t.labelDay;
+    document.getElementById("labelNight").textContent = t.labelNight;
+    document.getElementById("smallNight").textContent = t.smallNight;
+    document.getElementById("labelDouble").textContent = t.labelDouble;
+    document.getElementById("smallDouble").textContent = t.smallDouble;
+    document.getElementById("labelPension").textContent = t.labelPension;
+    document.getElementById("calculateBtn").textContent = t.calculateBtn;
+    document.getElementById("footer").textContent = t.footer;
+
+    ['et','ua'].forEach(l => document.getElementById('flag-' + l).classList.remove('active'));
+    document.getElementById('flag-' + lang).classList.add('active');
+
+    if (document.getElementById("output").innerHTML) calculate();
+}
+
+function calculate() {
+    const rate = Number(document.getElementById("rate").value);
+    const dayHours = Number(document.getElementById("dayHours").value);
+    const nightHours = Number(document.getElementById("nightHours").value);
+    const doubleHours = Number(document.getElementById("doubleHours").value);
+    const pension2Rate = Number(document.getElementById("pensionRate").value);
+
+    const dayPay = rate * dayHours;
+    const nightPay = rate * 1.35 * nightHours;
+    const doublePay = rate * 2 * doubleHours;
+
+    const bruto = dayPay + nightPay + doublePay;
+    const pension1 = bruto * 0.02;
+    const pension2 = bruto * pension2Rate;
+    const unemployment = bruto * 0.016;
+
+    const taxFree = 654;
+    const taxable = Math.max(0, bruto - pension1 - pension2 - unemployment - taxFree);
+    const incomeTax = taxable * 0.20;
+    const netto = bruto - pension1 - pension2 - unemployment - incomeTax;
+
+    const r = texts[currentLang].result;
+
+    document.getElementById("output").innerHTML = `
+        <strong>${r.bruto}:</strong> ${bruto.toFixed(2)} €<br><br>
+        ${r.pension1}: ${pension1.toFixed(2)} €<br>
+        ${r.pension2}: ${pension2.toFixed(2)} €<br>
+        ${r.unemployment}: ${unemployment.toFixed(2)} €<br>
+        ${r.incomeTax}: ${incomeTax.toFixed(2)} €<br><br>
+        <strong>${r.netto}:</strong> ${netto.toFixed(2)} €
+    `;
+}
+
+setLanguage(currentLang);
+</script>
+
+</body>
+</html>
